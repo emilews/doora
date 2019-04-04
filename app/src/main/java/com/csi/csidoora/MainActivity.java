@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
@@ -59,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
                     LogIn();
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -86,35 +89,45 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    public void LogIn() throws IOException {
+    public void LogIn() throws IOException, InterruptedException {
         final CONSTANTS constants = new CONSTANTS(this);
+        constants.sessionCode();
 
-        EditText e = findViewById(R.id.emailInput);
-        EditText p = findViewById(R.id.passwordInput);
-        Button b = findViewById(R.id.loginButton);
+        final EditText e = findViewById(R.id.emailInput);
+        final EditText p = findViewById(R.id.passwordInput);
+        final Button b = findViewById(R.id.loginButton);
         final String email = e.getText().toString();
         final String pass = p.getText().toString();
         e.setVisibility(View.INVISIBLE);
         p.setVisibility(View.INVISIBLE);
         b.setVisibility(View.INVISIBLE);
 
-        ProgressBar progressBar = (ProgressBar)findViewById(R.id.spin_kit);
+        final ProgressBar progressBar = (ProgressBar)findViewById(R.id.spin_kit);
         progressBar.setVisibility(View.VISIBLE);
         Sprite sprite = new CubeGrid();
         progressBar.setIndeterminateDrawable(sprite);
 
         final Context ctx = this;
-        VolleyService vs =VolleyService.getInstance();
-        if (vs.LogIn(this, email, pass)){
-            goHome();
-        }else{
-            progressBar.setVisibility(View.INVISIBLE);
-            e.setVisibility(View.VISIBLE);
-            p.setVisibility(View.VISIBLE);
-            b.setVisibility(View.VISIBLE);
-            Toast t = Toast.makeText(this, "Wrong credentials", Toast.LENGTH_LONG);
-            t.show();
-        }
+        final VolleyService vs =VolleyService.getInstance();
+        boolean loggedin = false;
+        vs.LogIn(this, email, pass);
+        Handler h = new Handler();
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (vs.getLoggedIn()){
+                    goHome();
+                }else{
+                    progressBar.setVisibility(View.INVISIBLE);
+                    e.setVisibility(View.VISIBLE);
+                    p.setVisibility(View.VISIBLE);
+                    b.setVisibility(View.VISIBLE);
+                    Toast t = Toast.makeText(MainActivity.this, "Wrong credentials", Toast.LENGTH_LONG);
+                    t.show();
+                }
+            }
+        }, 500);
+
     }
     public void goHome(){
         Intent intent = new Intent(MainActivity.this, Home.class);

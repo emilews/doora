@@ -13,10 +13,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.github.ybq.android.spinkit.sprite.Sprite;
 import com.github.ybq.android.spinkit.style.CubeGrid;
 import com.github.ybq.android.spinkit.style.ThreeBounce;
+
+import java.io.IOException;
 
 public class Home extends AppCompatActivity {
 
@@ -24,15 +27,25 @@ public class Home extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        LoadCode();
+        try {
+            LoadCode();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void LoadCode(){
+    public void LoadCode() throws IOException {
+        CONSTANTS constants = new CONSTANTS(this);
+        constants.doorCode();
         ProgressBar progressBar = (ProgressBar)findViewById(R.id.loadCode);
         progressBar.setVisibility(View.VISIBLE);
         Sprite sprite = new ThreeBounce();
         progressBar.setIndeterminateDrawable(sprite);
-
+        VolleyService vs = VolleyService.getInstance();
+        vs.getCode(this);
+        TextView code = findViewById(R.id.codeText);
+        progressBar.setVisibility(View.INVISIBLE);
+        code.setText(constants.getCODE());
 
     }
 
