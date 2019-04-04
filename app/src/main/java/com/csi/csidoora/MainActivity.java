@@ -1,6 +1,9 @@
 package com.csi.csidoora;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -101,34 +104,21 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setIndeterminateDrawable(sprite);
 
         final Context ctx = this;
-        RequestQueue r = Volley.newRequestQueue(this);
-        StringRequest sr = new StringRequest(Request.Method.POST, constants.getLOGIN_URL(),
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if(response.contains("Success")){
-                            startService(new Intent(ctx, BackgroundService.class));
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-            }
-
-        }){
-
-            protected Map<String, String> getParams() throws com.android.volley.AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("email", email);
-                params.put("password", pass);
-                params.put("device", constants.getDEVICE_CODE());
-                return params;
-            }
-        };
-        r.add(sr);
-        r.start();
-
+        VolleyService vs =VolleyService.getInstance();
+        if (vs.LogIn(this, email, pass)){
+            goHome();
+        }else{
+            progressBar.setVisibility(View.INVISIBLE);
+            e.setVisibility(View.VISIBLE);
+            p.setVisibility(View.VISIBLE);
+            b.setVisibility(View.VISIBLE);
+            Toast t = Toast.makeText(this, "Wrong credentials", Toast.LENGTH_LONG);
+            t.show();
+        }
+    }
+    public void goHome(){
+        Intent intent = new Intent(MainActivity.this, Home.class);
+        startActivity(intent);
+        overridePendingTransition(0,0);
     }
 }
