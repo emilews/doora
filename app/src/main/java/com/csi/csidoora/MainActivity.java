@@ -13,7 +13,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.github.ybq.android.spinkit.sprite.Sprite;
 import com.github.ybq.android.spinkit.style.CubeGrid;
@@ -22,6 +26,7 @@ import com.github.ybq.android.spinkit.style.FadingCircle;
 import com.github.ybq.android.spinkit.style.FoldingCube;
 
 public class MainActivity extends AppCompatActivity {
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +73,23 @@ public class MainActivity extends AppCompatActivity {
         p.setVisibility(View.INVISIBLE);
         b.setVisibility(View.INVISIBLE);
 
+        CONSTANTS constants = new CONSTANTS();
 
         RequestQueue r = Volley.newRequestQueue(this);
+        StringRequest sr = new StringRequest(Request.Method.GET, constants.getLOGIN_URL(),
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+
+        });
+
 
         ProgressBar progressBar = (ProgressBar)findViewById(R.id.spin_kit);
         progressBar.setVisibility(View.VISIBLE);

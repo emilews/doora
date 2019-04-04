@@ -1,9 +1,10 @@
 package com.csi.csidoora;
 
 public class CONSTANTS {
-    public final String LOGIN_URL = "http://192.168.1.72/csi/login/";
-    public final String CODE_URL = "http://192.168.1.72/csi/get_code/";
+    private final String LOGIN_URL = "http://192.168.1.72/csi/login/";
+    private final String CODE_URL = "http://192.168.1.72/csi/get_code/";
 
+    public CONSTANTS(){}
     public String getLOGIN_URL(){
         return LOGIN_URL;
     }
