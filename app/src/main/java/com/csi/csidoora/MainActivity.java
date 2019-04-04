@@ -2,6 +2,7 @@ package com.csi.csidoora;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -106,8 +107,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response) {
                         if(response.contains("Success")){
-                            Toast t = Toast.makeText(ctx, "Success!", Toast.LENGTH_LONG);
-                            t.show();
+                            startService(new Intent(ctx, BackgroundService.class));
                         }
 
                     }
