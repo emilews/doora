@@ -13,6 +13,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.github.ybq.android.spinkit.sprite.Sprite;
 import com.github.ybq.android.spinkit.style.CubeGrid;
 import com.github.ybq.android.spinkit.style.DoubleBounce;
@@ -65,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
         e.setVisibility(View.INVISIBLE);
         p.setVisibility(View.INVISIBLE);
         b.setVisibility(View.INVISIBLE);
+
+
+        RequestQueue r = Volley.newRequestQueue(this);
 
         ProgressBar progressBar = (ProgressBar)findViewById(R.id.spin_kit);
         progressBar.setVisibility(View.VISIBLE);
