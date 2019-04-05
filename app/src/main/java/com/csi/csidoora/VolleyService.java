@@ -24,7 +24,7 @@ public class VolleyService {
     private VolleyService() {
     }
 
-    public void LogIn(Context ctx, final String email, final String pass) throws IOException {
+    public void LogIn(Context ctx, final String email, final String pass) {
         final CONSTANTS constants = CONSTANTS.getInstance();
         RequestQueue r = Volley.newRequestQueue(ctx);
         StringRequest sr = new StringRequest(Request.Method.POST, constants.getLOGIN_URL(),
@@ -43,7 +43,7 @@ public class VolleyService {
 
         }){
 
-            protected Map<String, String> getParams() throws com.android.volley.AuthFailureError {
+            protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("email", email);
                 params.put("password", pass);
