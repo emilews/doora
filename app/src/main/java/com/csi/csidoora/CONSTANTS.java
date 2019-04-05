@@ -20,12 +20,15 @@ public class CONSTANTS {
     private String CODE = "";
     private final int DEVICE_CODE_LEN = 36;
     private final int CODE_LEN = 4;
+    private boolean logged = false;
+
 
     private static final CONSTANTS ourInstance = new CONSTANTS();
     public static CONSTANTS getInstance(){return ourInstance;}
 
     private CONSTANTS() {
     }
+
     public String getLOGIN_URL(){
         return LOGIN_URL;
     }
@@ -41,8 +44,9 @@ public class CONSTANTS {
     public String getDEVICE_CODE(){
         return DEVICE_CODE;
     }
-    public String getCODE_FILE_NAME(){ return DEVICE_FILE_NAME; }
+    public String getCODE_FILE_NAME(){ return CODE_FILE_NAME; }
     public String getCODE(){ return CODE; }
+    public boolean getLogged(){ return logged; }
     public void sessionCode(Context ctx){
         //To get the device session code, not the actual code
         try{
@@ -101,15 +105,23 @@ public class CONSTANTS {
     public void setCode(Context ctx, String s){
         this.CODE = s;
         try{
-            VolleyService vs = VolleyService.getInstance();
             FileOutputStream fo = ctx.openFileOutput(getCODE_FILE_NAME(), Context.MODE_PRIVATE);
             fo.write(this.CODE.getBytes());
             fo.flush();
             fo.close();
-        }catch(FileNotFoundException fe){
 
+        }catch(FileNotFoundException fe){
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    public void wasLogged(Context ctx){
+        try {
+            FileInputStream fi = ctx.openFileInput(getCODE_FILE_NAME());
+            System.out.println("Found code file");
+            logged = true;
+        }catch(Exception e){
+
         }
     }
 }

@@ -36,14 +36,20 @@
 
     <TextView
         android:id="@+id/codeText"
-        android:layout_width="255dp"
-        android:layout_height="107dp"
+        android:layout_width="100dp"
+        android:layout_height="83dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="96dp"
         android:layout_marginEnd="8dp"
+        android:text="ABC3"
+        android:textAlignment="center"
+        android:textAllCaps="false"
         android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+        android:textColor="@android:color/white"
+        android:textSize="36sp"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

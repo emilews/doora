@@ -1,8 +1,6 @@
 package com.csi.csidoora;
 
 import android.content.Context;
-import android.os.Handler;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -67,7 +65,8 @@ public class VolleyService {
                     @Override
                     public void onResponse(String response) {
                         if(response.contains("code")){
-                            setCode(ctx, response, constants);
+                            String[] a = response.split(" ");
+                            constants.setCode(ctx, a[1].substring(1, 5));
                         }
 
                     }
@@ -88,10 +87,6 @@ public class VolleyService {
         r.add(sr);
         r.start();
         return constants.getCODE();
-    }
-    public void setCode(Context ctx, String s, CONSTANTS c){
-        String[] a = s.split(" ");
-        c.setCode(ctx, a[1].substring(1, 5));
     }
     public boolean getLoggedIn(){
         return LoggedIn;
