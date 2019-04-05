@@ -90,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     public void LogIn() throws IOException, InterruptedException {
-        final CONSTANTS constants = new CONSTANTS(this);
-        constants.sessionCode();
+        final CONSTANTS constants = CONSTANTS.getInstance();
+        constants.sessionCode(this);
 
         final EditText e = findViewById(R.id.emailInput);
         final EditText p = findViewById(R.id.passwordInput);

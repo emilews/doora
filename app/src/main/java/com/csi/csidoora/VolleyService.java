@@ -27,7 +27,7 @@ public class VolleyService {
     }
 
     public void LogIn(Context ctx, final String email, final String pass) throws IOException {
-        final CONSTANTS constants = new CONSTANTS(ctx);
+        final CONSTANTS constants = CONSTANTS.getInstance();
         RequestQueue r = Volley.newRequestQueue(ctx);
         StringRequest sr = new StringRequest(Request.Method.POST, constants.getLOGIN_URL(),
                 new Response.Listener<String>() {
@@ -59,15 +59,15 @@ public class VolleyService {
     private void Success(){
         LoggedIn = true;
     }
-    public String getCode(Context ctx) throws IOException {
-        final CONSTANTS constants = new CONSTANTS(ctx);
+    public String getCode(final Context ctx) {
+        final CONSTANTS constants = CONSTANTS.getInstance();
         RequestQueue r = Volley.newRequestQueue(ctx);
         StringRequest sr = new StringRequest(Request.Method.POST, constants.getCODE_URL(),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         if(response.contains("code")){
-                            setCode(response, constants);
+                            setCode(ctx, response, constants);
                         }
 
                     }
@@ -89,9 +89,9 @@ public class VolleyService {
         r.start();
         return constants.getCODE();
     }
-    public void setCode(String s, CONSTANTS c){
+    public void setCode(Context ctx, String s, CONSTANTS c){
         String[] a = s.split(" ");
-        c.setCode(a[1].substring(1, 5));
+        c.setCode(ctx, a[1].substring(1, 5));
     }
     public boolean getLoggedIn(){
         return LoggedIn;

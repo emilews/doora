@@ -1,9 +1,6 @@
 package com.csi.csidoora;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Xml;
-import android.widget.Toast;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,11 +20,11 @@ public class CONSTANTS {
     private String CODE = "";
     private final int DEVICE_CODE_LEN = 36;
     private final int CODE_LEN = 4;
-    //Context
-    Context ctx;
 
-    public CONSTANTS(Context ctx) throws IOException {
-        this.ctx = ctx;
+    private static final CONSTANTS ourInstance = new CONSTANTS();
+    public static CONSTANTS getInstance(){return ourInstance;}
+
+    private CONSTANTS() {
     }
     public String getLOGIN_URL(){
         return LOGIN_URL;
@@ -46,10 +43,10 @@ public class CONSTANTS {
     }
     public String getCODE_FILE_NAME(){ return DEVICE_FILE_NAME; }
     public String getCODE(){ return CODE; }
-    public void sessionCode(){
+    public void sessionCode(Context ctx){
         //To get the device session code, not the actual code
         try{
-            FileInputStream fi = this.ctx.openFileInput(getDEVICE_FILE_NAME());
+            FileInputStream fi = ctx.openFileInput(getDEVICE_FILE_NAME());
             System.out.println("Found file");
             int n;
             StringBuffer sb = new StringBuffer();
@@ -60,7 +57,7 @@ public class CONSTANTS {
             DEVICE_CODE = sb.toString();
         }catch(FileNotFoundException f){
             try{
-                FileOutputStream fo = this.ctx.openFileOutput(getDEVICE_FILE_NAME(), Context.MODE_PRIVATE);
+                FileOutputStream fo = ctx.openFileOutput(getDEVICE_FILE_NAME(), Context.MODE_PRIVATE);
                 fo.write(createDeviceCode().getBytes());
                 fo.flush();
                 fo.close();
@@ -73,10 +70,10 @@ public class CONSTANTS {
             e.printStackTrace();
         }
     }
-    public void doorCode() {
+    public void doorCode(Context ctx) {
         //To get the actual code if saved
         try{
-            FileInputStream fi = this.ctx.openFileInput(getCODE_FILE_NAME());
+            FileInputStream fi = ctx.openFileInput(getCODE_FILE_NAME());
             System.out.println("Found code file");
             int n;
             StringBuffer sb2 = new StringBuffer();
@@ -88,8 +85,8 @@ public class CONSTANTS {
         }catch(FileNotFoundException f){
             try{
                 VolleyService vs = VolleyService.getInstance();
-                FileOutputStream fo = this.ctx.openFileOutput(getCODE_FILE_NAME(), Context.MODE_PRIVATE);
-                fo.write(vs.getCode(this.ctx).getBytes());
+                FileOutputStream fo = ctx.openFileOutput(getCODE_FILE_NAME(), Context.MODE_PRIVATE);
+                fo.write(vs.getCode(ctx).getBytes());
                 fo.flush();
                 fo.close();
             }catch(FileNotFoundException fe){
@@ -101,11 +98,11 @@ public class CONSTANTS {
             e.printStackTrace();
         }
     }
-    public void setCode(String s){
+    public void setCode(Context ctx, String s){
         this.CODE = s;
         try{
             VolleyService vs = VolleyService.getInstance();
-            FileOutputStream fo = this.ctx.openFileOutput(getCODE_FILE_NAME(), Context.MODE_PRIVATE);
+            FileOutputStream fo = ctx.openFileOutput(getCODE_FILE_NAME(), Context.MODE_PRIVATE);
             fo.write(this.CODE.getBytes());
             fo.flush();
             fo.close();
