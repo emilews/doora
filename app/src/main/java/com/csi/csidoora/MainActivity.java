@@ -36,11 +36,10 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.INTERNET},1);
 
-        CONSTANTS constants = CONSTANTS.getInstance();
-        constants.wasLogged(this);
-        if (constants.getLogged()){
+        BackgroundService.wasLogged(this);
+        if (BackgroundService.getLogged()){
             startActivity(new Intent(this, Home.class));
-            overridePendingTransition(0,0);
+            overridePendingTransition(3,3);
         }
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,8 +76,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     public void LogIn() throws IOException {
-        final CONSTANTS constants = CONSTANTS.getInstance();
-        constants.sessionCode(this);
+        BackgroundService.sessionCode(this);
 
         final EditText e = findViewById(R.id.emailInput);
         final EditText p = findViewById(R.id.passwordInput);
@@ -95,14 +93,13 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setIndeterminateDrawable(sprite);
 
         final Context ctx = this;
-        final VolleyService vs =VolleyService.getInstance();
         boolean loggedin = false;
-        vs.LogIn(this, email, pass);
+        BackgroundService.LogIn(this, email, pass);
         Handler h = new Handler();
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (vs.getLoggedIn()){
+                if (BackgroundService.getLoggedIn()){
                     goHome();
                 }else{
                     progressBar.setVisibility(View.INVISIBLE);
