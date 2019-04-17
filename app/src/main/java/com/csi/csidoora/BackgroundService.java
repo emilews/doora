@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -30,6 +31,15 @@ public class BackgroundService extends IntentService {
 
     public BackgroundService() {
         super("BackgroundService");
+        LoggedIn = false;
+    }
+
+    public static boolean getUserExists() {
+        return userExists;
+    }
+
+    public static String getUserName() {
+        return userName;
     }
 
 
@@ -89,7 +99,8 @@ public class BackgroundService extends IntentService {
     //---------------------------------------------------------------------
 
     //URL
-    private static final String LOGIN_URL = "http://192.168.1.72:8000/csi/login/";
+    private static final String LOGIN_URL_FIRST_PASS = "http://192.168.1.72:8000/csi/first/";
+    private static final String LOGIN_URL_SECOND_PASS = "http://192.168.1.72:8000/csi/second/";
     private static final String CODE_URL = "http://192.168.1.72:8000/csi/get_code/";
     //FILES
     private static final String DEVICE_FILE_NAME = "device.csi";
@@ -99,10 +110,15 @@ public class BackgroundService extends IntentService {
     private static final int DEVICE_CODE_LEN = 36;
     private static final int CODE_LEN = 4;
     private static boolean logged = false;
+    private static boolean userExists = false;
+    private static String userName = "";
 
 
-    public static String getLOGIN_URL(){
-        return LOGIN_URL;
+    public static String getLOGIN_URL_FIRST_PASS(){
+        return LOGIN_URL_FIRST_PASS;
+    }
+    public static String getLOGIN_URL_SECOND_PASS(){
+        return LOGIN_URL_SECOND_PASS;
     }
     public static String getCODE_URL(){
         return CODE_URL;
@@ -120,11 +136,12 @@ public class BackgroundService extends IntentService {
     public static String getCODE(){ return CODE; }
     public static boolean getLogged(){ return logged; }
 
+
     public static void sessionCode(Context ctx){
         //To get the device session code, not the actual code
         try{
             FileInputStream fi = ctx.openFileInput(getDEVICE_FILE_NAME());
-            System.out.println("Found file");
+            System.out.println("Found session code file");
             int n;
             StringBuffer sb = new StringBuffer();
             byte[] data = new byte[DEVICE_CODE_LEN];
@@ -132,6 +149,7 @@ public class BackgroundService extends IntentService {
                 sb.append(new String(data, 0, n));
             }
             DEVICE_CODE = sb.toString();
+            System.out.println(DEVICE_CODE);
         }catch(FileNotFoundException f){
             try{
                 FileOutputStream fo = ctx.openFileOutput(getDEVICE_FILE_NAME(), Context.MODE_PRIVATE);
@@ -202,14 +220,15 @@ public class BackgroundService extends IntentService {
             logged = false;
         }
     }
-    public static void LogIn(Context ctx, final String email, final String pass) {
+    public static void LogInFirstPass(final Context ctx, final String email) {
         RequestQueue r = Volley.newRequestQueue(ctx);
-        StringRequest sr = new StringRequest(Request.Method.POST, BackgroundService.getLOGIN_URL(),
+        StringRequest sr = new StringRequest(Request.Method.POST, BackgroundService.getLOGIN_URL_FIRST_PASS(),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        if(response.contains("Success")){
-                            Success();
+                        if(response.contains("Name")){
+                            userExists = true;
+                            SuccessFirstPass(ctx, response);
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -223,16 +242,58 @@ public class BackgroundService extends IntentService {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("email", email);
-                params.put("password", pass);
-                params.put("device", BackgroundService.getDEVICE_CODE());
                 return params;
             }
         };
         r.add(sr);
         r.start();
     }
-    private static void Success(){
+    public static void LogInSecondPass(final Context ctx, final String email, final String pswd) {
+        RequestQueue r = Volley.newRequestQueue(ctx);
+        StringRequest sr = new StringRequest(Request.Method.POST, BackgroundService.getLOGIN_URL_SECOND_PASS(),
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        System.out.println(response);
+                        if(response.contains("Success.")){
+                            System.out.println("response has succeded");
+                            SuccessSecondPass();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+
+        }){
+
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("email", email);
+                params.put("password", pswd);
+                params.put("device", getDEVICE_CODE());
+                return params;
+            }
+        };
+        r.add(sr);
+        r.start();
+    }
+    private static void SuccessSecondPass(){
+        System.out.println("Second Pass Success!");
         LoggedIn = true;
+    }
+    private static void SuccessFirstPass(Context ctx, String name) {
+        String[] a = name.split(":");
+        char[] e = a[1].toCharArray();
+        String finalName = "";
+        StringBuilder sb = new StringBuilder(finalName);
+        for(int i = 0; i < e.length; i++){
+            if(e[i] == '"') continue;
+            if (e[i] == '}') break;
+            sb.append(e[i]);
+        }
+        userName = sb.toString();
     }
     public static String getCode(final Context ctx) {
         RequestQueue r = Volley.newRequestQueue(ctx);
