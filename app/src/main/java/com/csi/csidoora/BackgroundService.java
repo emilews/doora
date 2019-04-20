@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,6 +24,49 @@ import java.util.TimerTask;
 import java.util.UUID;
 
 public class BackgroundService extends IntentService {
+    //---------------------------------------------------------------------
+    //This is the CONSTANTS part, made like this because the Java GC collects
+    //the CONSTANTS object and we can't access it anymore from the service
+    //---------------------------------------------------------------------
+
+    //URL
+    private static final String LOGIN_URL_FIRST_PASS = "http://192.168.1.72:8000/csi/first/";
+    private static final String LOGIN_URL_SECOND_PASS = "http://192.168.1.72:8000/csi/second/";
+    private static final String CODE_URL = "http://192.168.1.72:8000/csi/get_code/";
+    //FILES
+    private static final String DEVICE_FILE_NAME = "device.csi";
+    private static final String CODE_FILE_NAME = "code.csi";
+    private static String DEVICE_CODE = "";
+    private static String CODE = "";
+    private static final int DEVICE_CODE_LEN = 36;
+    private static final int CODE_LEN = 4;
+    private static boolean userExists = false;
+    private static String userName = "";
+
+
+    public static String getLOGIN_URL_FIRST_PASS(){
+        return LOGIN_URL_FIRST_PASS;
+    }
+    public static String getLOGIN_URL_SECOND_PASS(){
+        return LOGIN_URL_SECOND_PASS;
+    }
+    public static String getCODE_URL(){
+        return CODE_URL;
+    }
+    public static String getDEVICE_FILE_NAME(){
+        return DEVICE_FILE_NAME;
+    }
+    private static String createDeviceCode(){
+        return UUID.randomUUID().toString();
+    }
+    public static String getDEVICE_CODE(){
+        return DEVICE_CODE;
+    }
+    public static String getCODE_FILE_NAME(){ return CODE_FILE_NAME; }
+    public static String getCODE(){ return CODE; }
+    public static boolean getLoggedIn(){
+        return LoggedIn;
+    }
 
 
     private static boolean LoggedIn;
@@ -50,8 +92,8 @@ public class BackgroundService extends IntentService {
         t.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                sessionCode(BackgroundService.this);
-                getCode(BackgroundService.this);
+                sessionIDCode(BackgroundService.this);
+                doorCode(BackgroundService.this);
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(BackgroundService.this,
                         "csi")
                         .setSmallIcon(R.drawable.logo_notif_white)
@@ -65,79 +107,13 @@ public class BackgroundService extends IntentService {
             }
         },0, 1000);
     }
-    public void getCode() {
-        RequestQueue r = Volley.newRequestQueue(BackgroundService.this);
-        StringRequest sr = new StringRequest(Request.Method.POST, getCODE_URL(),
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response.contains("code")) {
-                            String[] a = response.split(" ");
-                            setCode(BackgroundService.this, a[1].substring(1, 5));
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
 
-            }
-        }) {
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("device", getDEVICE_CODE());
-                return params;
-            }
-        };
-        r.add(sr);
-        r.start();
-    }
-
-
-    //---------------------------------------------------------------------
-    //This is the CONSTANTS part, made like this because the Java GC collects
-    //the CONSTANTS object and we can't access it anymore from the service
-    //---------------------------------------------------------------------
-
-    //URL
-    private static final String LOGIN_URL_FIRST_PASS = "http://192.168.1.72:8000/csi/first/";
-    private static final String LOGIN_URL_SECOND_PASS = "http://192.168.1.72:8000/csi/second/";
-    private static final String CODE_URL = "http://192.168.1.72:8000/csi/get_code/";
-    //FILES
-    private static final String DEVICE_FILE_NAME = "device.csi";
-    private static final String CODE_FILE_NAME = "code.csi";
-    private static String DEVICE_CODE = "";
-    private static String CODE = "";
-    private static final int DEVICE_CODE_LEN = 36;
-    private static final int CODE_LEN = 4;
-    private static boolean logged = false;
-    private static boolean userExists = false;
-    private static String userName = "";
-
-
-    public static String getLOGIN_URL_FIRST_PASS(){
-        return LOGIN_URL_FIRST_PASS;
-    }
-    public static String getLOGIN_URL_SECOND_PASS(){
-        return LOGIN_URL_SECOND_PASS;
-    }
-    public static String getCODE_URL(){
-        return CODE_URL;
-    }
-    public static String getDEVICE_FILE_NAME(){
-        return DEVICE_FILE_NAME;
-    }
-    private static String createDeviceCode(){
-        return UUID.randomUUID().toString();
-    }
-    public static String getDEVICE_CODE(){
-        return DEVICE_CODE;
-    }
-    public static String getCODE_FILE_NAME(){ return CODE_FILE_NAME; }
-    public static String getCODE(){ return CODE; }
-    public static boolean getLogged(){ return logged; }
-
-
-    public static void sessionCode(Context ctx){
+    //Getting session ID code from memory (aka the device.csi file)
+    //If it finds the file, then proceeds to get the code which is 36
+    //characters long
+    //If file is not found (catch statement) then we create the file and
+    //create a new code using UUID random method
+    public static void sessionIDCode(Context ctx){
         //To get the device session code, not the actual code
         try{
             FileInputStream fi = ctx.openFileInput(getDEVICE_FILE_NAME());
@@ -167,7 +143,8 @@ public class BackgroundService extends IntentService {
     }
 
 
-    public static void doorCode(Context ctx) {
+    public void doorCode(Context ctx) {
+        getCodeFromWeb(ctx);
         //To get the actual code if saved
         try{
             FileInputStream fi = ctx.openFileInput(getCODE_FILE_NAME());
@@ -182,7 +159,7 @@ public class BackgroundService extends IntentService {
         }catch(FileNotFoundException f){
             try{
                 FileOutputStream fo = ctx.openFileOutput(getCODE_FILE_NAME(), Context.MODE_PRIVATE);
-                fo.write(BackgroundService.getCode(ctx).getBytes());
+                fo.write(BackgroundService.getCODE().getBytes());
                 fo.flush();
                 fo.close();
             }catch(FileNotFoundException fe){
@@ -195,7 +172,7 @@ public class BackgroundService extends IntentService {
         }
     }
 
-
+    //Sets the code in-memory then writes it to the code.csi file
     public static void setCode(Context ctx, String s){
         CODE = s;
         try{
@@ -210,16 +187,19 @@ public class BackgroundService extends IntentService {
         }
     }
 
-
+    //If the code.csi file is found, then the user was logged in before, therefore, we can
+    //just go to the home activity without opening MainActivity
     public static void wasLogged(Context ctx){
         try {
             FileInputStream fi = ctx.openFileInput(getCODE_FILE_NAME());
             System.out.println("Found code file");
-            logged = true;
+            LoggedIn = true;
         }catch(Exception e){
-            logged = false;
+            LoggedIn = false;
         }
     }
+    //We ask the server if the email belongs to a user in the DB, if it does, then we get the
+    //name of the user and show it on the login screen
     public static void LogInFirstPass(final Context ctx, final String email) {
         RequestQueue r = Volley.newRequestQueue(ctx);
         StringRequest sr = new StringRequest(Request.Method.POST, BackgroundService.getLOGIN_URL_FIRST_PASS(),
@@ -248,6 +228,9 @@ public class BackgroundService extends IntentService {
         r.add(sr);
         r.start();
     }
+    //Now that we know the user exists, then we ask for the password of that account
+    //If it is the wrong password, then we use a Toast Notification to let the user know
+    //We send the email, the password and the session ID code to the server
     public static void LogInSecondPass(final Context ctx, final String email, final String pswd) {
         RequestQueue r = Volley.newRequestQueue(ctx);
         StringRequest sr = new StringRequest(Request.Method.POST, BackgroundService.getLOGIN_URL_SECOND_PASS(),
@@ -256,7 +239,6 @@ public class BackgroundService extends IntentService {
                     public void onResponse(String response) {
                         System.out.println(response);
                         if(response.contains("Success.")){
-                            System.out.println("response has succeded");
                             SuccessSecondPass();
                         }
                     }
@@ -279,10 +261,11 @@ public class BackgroundService extends IntentService {
         r.add(sr);
         r.start();
     }
+    //If the password is correct, then we set the flag as true
     private static void SuccessSecondPass(){
-        System.out.println("Second Pass Success!");
         LoggedIn = true;
     }
+    //We separate the name from the JSON response and give it back to show on the UI
     private static void SuccessFirstPass(Context ctx, String name) {
         String[] a = name.split(":");
         char[] e = a[1].toCharArray();
@@ -295,38 +278,33 @@ public class BackgroundService extends IntentService {
         }
         userName = sb.toString();
     }
-    public static String getCode(final Context ctx) {
-        RequestQueue r = Volley.newRequestQueue(ctx);
-        StringRequest sr = new StringRequest(Request.Method.POST, BackgroundService.getCODE_URL(),
+
+    public void getCodeFromWeb(Context ctx) {
+        RequestQueue r = Volley.newRequestQueue(BackgroundService.this);
+        StringRequest sr = new StringRequest(Request.Method.POST, getCODE_URL(),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        if(response.contains("code")){
+                        if (response.contains("code")) {
                             String[] a = response.split(" ");
-                            BackgroundService.setCode(ctx, a[1].substring(1, 5));
+                            setCode(BackgroundService.this, a[1].substring(1, 5));
                         }
-
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
 
             }
-
-        }){
-
+        }) {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("device", BackgroundService.getDEVICE_CODE());
+                params.put("device", getDEVICE_CODE());
                 return params;
             }
         };
         r.add(sr);
         r.start();
-        return BackgroundService.getCODE();
     }
-    public static boolean getLoggedIn(){
-        return LoggedIn;
-    }
+
 }
 
