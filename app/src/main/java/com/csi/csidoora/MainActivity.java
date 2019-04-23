@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         //Create a notification channel for the permanent we use
         createNotificationChannel();
         //SessionCode
-        BackgroundService.sessionCode(MainActivity.this);
+        BackgroundService.sessionIDCode(MainActivity.this);
         //Setting all the widgets for later use
         final ProgressBar progressBar = (ProgressBar)findViewById(R.id.spin_kit);
         final EditText e = findViewById(R.id.emailInput);
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.INTERNET},1);
         BackgroundService.wasLogged(this);
-        if (BackgroundService.getLogged()){
+        if (BackgroundService.getLoggedIn()){
             startActivity(new Intent(this, Home.class));
             overridePendingTransition(3,3);
         }
@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
     public void LogIn(final ProgressBar progressBar, final EditText e, final ImageView csi, final
                       Button b, final TextView welcome, final TextView userNameText, final Button loginFirst,
                       final EditText p){
-        BackgroundService.sessionCode(this);
+        BackgroundService.sessionIDCode(this);
 
         final String email = e.getText().toString();
 

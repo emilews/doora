@@ -30,9 +30,9 @@ public class BackgroundService extends IntentService {
     //---------------------------------------------------------------------
 
     //URL
-    private static final String LOGIN_URL_FIRST_PASS = "http://192.168.1.72:8000/csi/first/";
-    private static final String LOGIN_URL_SECOND_PASS = "http://192.168.1.72:8000/csi/second/";
-    private static final String CODE_URL = "http://192.168.1.72:8000/csi/get_code/";
+    private static final String LOGIN_URL_FIRST_PASS = "http://148.225.50.252:8000/csi/first/";
+    private static final String LOGIN_URL_SECOND_PASS = "http://148.225.50.252:8000/csi/second/";
+    private static final String CODE_URL = "http://148.225.50.252:8000/csi/get_code/";
     //FILES
     private static final String DEVICE_FILE_NAME = "device.csi";
     private static final String CODE_FILE_NAME = "code.csi";
@@ -43,7 +43,7 @@ public class BackgroundService extends IntentService {
     private static boolean userExists = false;
     private static String userName = "";
 
-
+    //Getters
     public static String getLOGIN_URL_FIRST_PASS(){
         return LOGIN_URL_FIRST_PASS;
     }
@@ -93,7 +93,12 @@ public class BackgroundService extends IntentService {
             @Override
             public void run() {
                 sessionIDCode(BackgroundService.this);
-                doorCode(BackgroundService.this);
+                if(!isOnline()){
+                    doorCodeFromMemory(BackgroundService.this);
+                }else{
+                    getCodeFromWeb(BackgroundService.this);
+                }
+
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(BackgroundService.this,
                         "csi")
                         .setSmallIcon(R.drawable.logo_notif_white)
@@ -105,7 +110,7 @@ public class BackgroundService extends IntentService {
                 // notificationId is a unique int for each notification that you must define
                 notificationManager.notify(1, builder.build());
             }
-        },0, 1000);
+        },0, 5000);
     }
 
     //Getting session ID code from memory (aka the device.csi file)
@@ -125,7 +130,6 @@ public class BackgroundService extends IntentService {
                 sb.append(new String(data, 0, n));
             }
             DEVICE_CODE = sb.toString();
-            System.out.println(DEVICE_CODE);
         }catch(FileNotFoundException f){
             try{
                 FileOutputStream fo = ctx.openFileOutput(getDEVICE_FILE_NAME(), Context.MODE_PRIVATE);
@@ -143,8 +147,7 @@ public class BackgroundService extends IntentService {
     }
 
 
-    public void doorCode(Context ctx) {
-        getCodeFromWeb(ctx);
+    public void doorCodeFromMemory(Context ctx) {
         //To get the actual code if saved
         try{
             FileInputStream fi = ctx.openFileInput(getCODE_FILE_NAME());
@@ -156,22 +159,25 @@ public class BackgroundService extends IntentService {
                 sb2.append(new String(data, 0, n));
             }
             CODE = sb2.toString();
-        }catch(FileNotFoundException f){
-            try{
-                FileOutputStream fo = ctx.openFileOutput(getCODE_FILE_NAME(), Context.MODE_PRIVATE);
-                fo.write(BackgroundService.getCODE().getBytes());
-                fo.flush();
-                fo.close();
-            }catch(FileNotFoundException fe){
-
-            } catch (IOException e) {
+        }catch(FileNotFoundException f) {
+            getAndSaveCodeFromMemory(ctx);
+        }
+        catch (IOException e) {
                 e.printStackTrace();
-            }
+        }
+    }
+    private void getAndSaveCodeFromMemory(Context ctx){
+        try{
+            FileOutputStream fo = ctx.openFileOutput(getCODE_FILE_NAME(), Context.MODE_PRIVATE);
+            fo.write(BackgroundService.getCODE().getBytes());
+            fo.flush();
+            fo.close();
+        }catch(FileNotFoundException fe){
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     //Sets the code in-memory then writes it to the code.csi file
     public static void setCode(Context ctx, String s){
         CODE = s;
@@ -305,6 +311,10 @@ public class BackgroundService extends IntentService {
         r.add(sr);
         r.start();
     }
+
+
+
+
     public boolean isOnline() {
         Runtime runtime = Runtime.getRuntime();
         try {

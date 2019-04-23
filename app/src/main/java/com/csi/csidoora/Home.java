@@ -33,7 +33,6 @@ public class Home extends AppCompatActivity {
     }
 
     public void LoadCode()  {
-        BackgroundService.doorCode(this);
         ProgressBar progressBar = (ProgressBar)findViewById(R.id.loadCode);
         progressBar.setVisibility(View.VISIBLE);
         Sprite sprite = new ThreeBounce();
@@ -44,8 +43,7 @@ public class Home extends AppCompatActivity {
 
     }
     private void refreshData() {
-        BackgroundService.sessionCode(this);
-        BackgroundService.getCode(this);
+        BackgroundService.sessionIDCode(this);
         final TextView c = findViewById(R.id.codeText);
         Handler f = new Handler();
         f.postDelayed(new Runnable() {
