@@ -1,6 +1,7 @@
 package com.csi.csidoora;
 
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -37,33 +38,16 @@ public class Home extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         Sprite sprite = new ThreeBounce();
         progressBar.setIndeterminateDrawable(sprite);
-        final TextView code = findViewById(R.id.codeText);
+        TextView code = findViewById(R.id.codeText);
         progressBar.setVisibility(View.INVISIBLE);
         code.setText(BackgroundService.getCODE());
 
     }
     private void refreshData() {
         BackgroundService.sessionIDCode(this);
-        final TextView c = findViewById(R.id.codeText);
-        Handler f = new Handler();
-        f.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                c.setText(BackgroundService.getCODE());
-            }
-        }, 300);
-    }
-    public  void updateViews(){
-        new UIUpdater().execute();
-    }
-    class UIUpdater extends android.os.AsyncTask{
-
-        @Override
-        protected Object doInBackground(Object[] objects) {
-            TextView c = (TextView) findViewById(R.id.codeText);
-            c.setText(BackgroundService.getCODE());
-            return null;
-        }
+        BackgroundService.refresh(this);
+        TextView c = findViewById(R.id.codeText);
+        c.setText(BackgroundService.getCODE());
     }
 
 }

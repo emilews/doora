@@ -30,9 +30,9 @@ public class BackgroundService extends IntentService {
     //---------------------------------------------------------------------
 
     //URL
-    private static final String LOGIN_URL_FIRST_PASS = "http://148.225.50.252:8000/csi/first/";
-    private static final String LOGIN_URL_SECOND_PASS = "http://148.225.50.252:8000/csi/second/";
-    private static final String CODE_URL = "http://148.225.50.252:8000/csi/get_code/";
+    private static final String LOGIN_URL_FIRST_PASS = "http://148.225.50.252:8080/csi/first/";
+    private static final String LOGIN_URL_SECOND_PASS = "http://148.225.50.252:8080/csi/second/";
+    private static final String CODE_URL = "http://148.225.50.252:8080/csi/get_code/";
     //FILES
     private static final String DEVICE_FILE_NAME = "device.csi";
     private static final String CODE_FILE_NAME = "code.csi";
@@ -144,6 +144,7 @@ public class BackgroundService extends IntentService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
 
@@ -285,15 +286,16 @@ public class BackgroundService extends IntentService {
         userName = sb.toString();
     }
 
-    public void getCodeFromWeb(Context ctx) {
-        RequestQueue r = Volley.newRequestQueue(BackgroundService.this);
+    public static void getCodeFromWeb(Context ctx) {
+        final Context x = ctx;
+        RequestQueue r = Volley.newRequestQueue(ctx);
         StringRequest sr = new StringRequest(Request.Method.POST, getCODE_URL(),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         if (response.contains("code")) {
                             String[] a = response.split(" ");
-                            setCode(BackgroundService.this, a[1].substring(1, 5));
+                            setCode(x, a[1].substring(1, 5));
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -324,6 +326,9 @@ public class BackgroundService extends IntentService {
         } catch (IOException e)          { e.printStackTrace(); }
         catch (InterruptedException e) { e.printStackTrace(); }
         return false;
+    }
+    public static void refresh(Context ctx){
+        getCodeFromWeb(ctx);
     }
 
 }
